@@ -1,0 +1,16 @@
+C:\Users\mszauer\Desktop\AutomationFramework\AutomationFramework\bin\Debug\AutomationFramework.exe.config
+C:\Users\mszauer\Desktop\AutomationFramework\AutomationFramework\bin\Debug\AutomationFramework.exe
+C:\Users\mszauer\Desktop\AutomationFramework\AutomationFramework\bin\Debug\AutomationFramework.pdb
+C:\Users\mszauer\Desktop\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.csprojResolveAssemblyReference.cache
+C:\Users\mszauer\Desktop\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.Properties.Resources.resources
+C:\Users\mszauer\Desktop\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.csproj.GenerateResource.Cache
+C:\Users\mszauer\Desktop\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.exe
+C:\Users\mszauer\Desktop\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.pdb
+C:\Users\mszauer\Documents\AutomationFramework\AutomationFramework\bin\Debug\AutomationFramework.exe.config
+C:\Users\mszauer\Documents\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.exe
+C:\Users\mszauer\Documents\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.pdb
+C:\Users\mszauer\Documents\AutomationFramework\AutomationFramework\bin\Debug\AutomationFramework.exe
+C:\Users\mszauer\Documents\AutomationFramework\AutomationFramework\bin\Debug\AutomationFramework.pdb
+C:\Users\mszauer\Documents\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.csprojResolveAssemblyReference.cache
+C:\Users\mszauer\Documents\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.Properties.Resources.resources
+C:\Users\mszauer\Documents\AutomationFramework\AutomationFramework\obj\Debug\AutomationFramework.csproj.GenerateResource.Cache

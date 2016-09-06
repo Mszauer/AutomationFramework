@@ -1,13 +1,17 @@
-﻿using System;
+﻿//#define debugColors
+using System;
 using System.Windows.Forms;
 using System.IO;
 using System.Drawing;
 using System.Windows;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Game {
     public class Program : Form {
         public SplitContainer mainWindowSplitter;
         public WebBrowser browser;
+        public ListBox currentPages;
 
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.ComponentModel.IContainer components = null;
@@ -18,7 +22,6 @@ namespace Game {
             }
             base.Dispose(disposing);
         }
-
         public Program() {
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.SuspendLayout();
@@ -31,23 +34,57 @@ namespace Game {
 
         void OnLoad(object sender, EventArgs a) {
             browser = new WebBrowser();
-            this.Controls.Add(browser);
             browser.Dock = DockStyle.Fill;
             //browser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(DownloadHTML);
             browser.Navigate("google.com");
 
-
             mainWindowSplitter = new SplitContainer();
             mainWindowSplitter.IsSplitterFixed = true;
+            mainWindowSplitter.Dock = DockStyle.Fill;
+
             BrowserLayoutSplit();
 
             this.Controls.Add(mainWindowSplitter);
-            mainWindowSplitter.Panel2.Controls.Add(browser);
 
-            browser.Dock = DockStyle.Fill;
             mainWindowSplitter.Dock = DockStyle.Fill;
-        }
 
+            SplitContainer bodySplitter = new SplitContainer();
+            mainWindowSplitter.Panel2.Controls.Add(bodySplitter);
+            bodySplitter.Dock = DockStyle.Fill;
+            bodySplitter.IsSplitterFixed = true;
+            bodySplitter.SplitterDistance = 30;
+            bodySplitter.Panel2.Controls.Add(browser);
+
+            currentPages = new ListBox();
+            CreateListBox(bodySplitter);
+            RefreshListBox();
+
+
+            #region DebugColors
+#if debugColors
+            mainWindowSplitter.Panel1.BackColor = Color.Yellow;
+            mainWindowSplitter.Panel2.BackColor = Color.Green;
+            bodySplitter.Panel1.BackColor = Color.Red;
+            bodySplitter.Panel2.BackColor = Color.Blue;
+#endif
+            #endregion
+
+
+        }
+        void CreateListBox(SplitContainer rootSplitter) {
+            ListBox list = new ListBox();
+            rootSplitter.Panel1.Controls.Add(list);
+
+            list.Dock = DockStyle.Fill;
+            list.SelectionMode = SelectionMode.One;
+
+        }
+        protected void RefreshListBox() {
+            foreach(HtmlWindow window in RefreshFrames()) {
+                currentPages.Items.Add(window);
+            }
+
+        }
         void BrowserLayoutSplit() {
             mainWindowSplitter.Name = "Main Window";
 
@@ -66,25 +103,24 @@ namespace Game {
 
             CreateTextbox(urlSplitter);
         }
-
-        void CreateTextbox(SplitContainer urlSplit) {
+        void CreateTextbox(SplitContainer rootSplitter) {
             string textboxURL;
-            urlSplit.SplitterDistance = (int)(3.5f * (urlSplit.Size.Width / 4));
+            rootSplitter.SplitterDistance = (int)(3.5f * (rootSplitter.Size.Width / 4));
 
             #region URLFIELD
             TextBox urlText = new TextBox();
             urlText.Dock = DockStyle.Fill;
             urlText.Multiline = false;
-            urlSplit.Panel1.Controls.Add(urlText);
+            rootSplitter.Panel1.Controls.Add(urlText);
             #endregion
 
             #region GO/DOWNLOAD BUTTONS
             SplitContainer goDownloadSplit = new SplitContainer();
-            goDownloadSplit.SplitterDistance = urlSplit.Width / 2;
+            goDownloadSplit.SplitterDistance = rootSplitter.Width / 2;
             goDownloadSplit.IsSplitterFixed = true;
             goDownloadSplit.Dock = DockStyle.Fill;
 
-            urlSplit.Panel2.Controls.Add(goDownloadSplit);
+            rootSplitter.Panel2.Controls.Add(goDownloadSplit);
 
 
 
@@ -105,12 +141,11 @@ namespace Game {
             download.Text = "Get Body";
             download.Click += delegate (Object sender, EventArgs e)//setup button click function
             {
-                DownloadHTML();
+                GetHTMLBody();
             };
             goDownloadSplit.Panel2.Controls.Add(download);
             #endregion
         }
-
         void OnWebpageLoad(object sender, WebBrowserDocumentCompletedEventArgs e) {
             browser.Document.GetElementById("lst-ib").SetAttribute("value", "Superman");//insert text for search boxes
 
@@ -125,8 +160,7 @@ namespace Game {
             }
             
         }
-
-        void DownloadHTML() {
+        void GetHTMLBody() {
             string webData = browser.Document.Body.OuterHtml;
             SaveFileDialog save = new SaveFileDialog();
 
@@ -147,6 +181,21 @@ namespace Game {
                 }
 
             }
+        }
+        List<HtmlWindow> RefreshFrames() {
+            List<HtmlWindow> currentWindows = GetIFrames(browser.Document.Window);
+
+            return currentWindows;
+        }
+        protected List<HtmlWindow> GetIFrames(HtmlWindow rootWindow) {
+            List<HtmlWindow> result = new List<HtmlWindow>();
+
+            result.Add(rootWindow);
+            foreach(HtmlWindow child in rootWindow.Frames) {
+                result.AddRange(GetIFrames(child));//recursively adds all child's windows
+            }
+
+            return result;
         }
 
         [STAThread]

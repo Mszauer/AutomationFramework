@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
+using System.IO;
 using System.Drawing;
+using System.Windows;
 
 namespace Game {
     public class Program : Form {
@@ -31,7 +33,9 @@ namespace Game {
             browser = new WebBrowser();
             this.Controls.Add(browser);
             browser.Dock = DockStyle.Fill;
-            browser.Navigate("Google.com");
+            //browser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(DownloadHTML);
+            browser.Navigate("google.com");
+
 
             mainWindowSplitter = new SplitContainer();
             mainWindowSplitter.IsSplitterFixed = true;
@@ -74,19 +78,75 @@ namespace Game {
             urlSplit.Panel1.Controls.Add(urlText);
             #endregion
 
-            #region GOBUTTONFIELD
+            #region GO/DOWNLOAD BUTTONS
+            SplitContainer goDownloadSplit = new SplitContainer();
+            goDownloadSplit.SplitterDistance = urlSplit.Width / 2;
+            goDownloadSplit.IsSplitterFixed = true;
+            goDownloadSplit.Dock = DockStyle.Fill;
+
+            urlSplit.Panel2.Controls.Add(goDownloadSplit);
+
+
+
             Button urlGoTo = new Button();
             urlGoTo.Dock = DockStyle.Fill;
-            urlGoTo.BackColor = Color.Green;
+            urlGoTo.BackColor = Color.LightSeaGreen;
             urlGoTo.Text = "Go!";
             urlGoTo.Click += delegate (Object sender, EventArgs e)//setup button click function
             {
                 textboxURL = urlText.Text; //retrieve textbox text
                 browser.Navigate(new Uri(textboxURL));//Load website from url provided
             };
+            goDownloadSplit.Panel1.Controls.Add(urlGoTo);
 
-            urlSplit.Panel2.Controls.Add(urlGoTo);
+            Button download = new Button();
+            download.Dock = DockStyle.Fill;
+            download.BackColor = Color.CadetBlue;
+            download.Text = "Get Body";
+            download.Click += delegate (Object sender, EventArgs e)//setup button click function
+            {
+                DownloadHTML();
+            };
+            goDownloadSplit.Panel2.Controls.Add(download);
             #endregion
+        }
+
+        void OnWebpageLoad(object sender, WebBrowserDocumentCompletedEventArgs e) {
+            browser.Document.GetElementById("lst-ib").SetAttribute("value", "Superman");//insert text for search boxes
+
+            //browser.Document.GetElementById("go").InvokeMember("click"); // tried to load a new web page and it did not have a search button. NRE
+            foreach (HtmlElement el in browser.Document.GetElementsByTagName("input")) {
+                if (el.Name == "btnK") {
+                    el.InvokeMember("sf.chk");
+                    el.InvokeMember("onclick");
+
+                }
+
+            }
+            
+        }
+
+        void DownloadHTML() {
+            string webData = browser.Document.Body.OuterHtml;
+            SaveFileDialog save = new SaveFileDialog();
+
+            // Set filter options and filter index.
+            save.Filter = "Text Files (.txt)|*.txt|All Files (*.*)|*.*";
+            save.FilterIndex = 1;
+
+            // Call the ShowDialog method to show the dialog box.
+            DialogResult userClickedOK = save.ShowDialog();
+
+            // Process input if the user clicked OK.
+            if (userClickedOK == DialogResult.OK) {
+                // Open the selected file to read.
+                System.IO.Stream fileStream = save.OpenFile();
+
+                using (System.IO.StreamWriter writer = new System.IO.StreamWriter(fileStream)) {
+                    writer.WriteLine(webData);
+                }
+
+            }
         }
 
         [STAThread]

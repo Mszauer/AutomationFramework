@@ -12,6 +12,7 @@ namespace Game {
         public SplitContainer mainWindowSplitter;
         public WebBrowser browser;
         public ListBox currentPages;
+        public TabControl tabs;
 
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.ComponentModel.IContainer components = null;
@@ -53,11 +54,17 @@ namespace Game {
             bodySplitter.Dock = DockStyle.Fill;
             bodySplitter.IsSplitterFixed = true;
             bodySplitter.SplitterDistance = 30;
-            bodySplitter.Panel2.Controls.Add(browser);
+            //bodySplitter.Panel2.Controls.Add(browser);
 
             currentPages = new ListBox();
             CreateListBox(bodySplitter);
-            RefreshListBox();
+            //RefreshListBox();stuck in a loop
+
+            tabs = new TabControl();
+            tabs.Dock = DockStyle.Fill;
+            bodySplitter.Panel2.Controls.Add(tabs);
+
+            AddTab(this, new EventArgs());
 
 
             #region DebugColors
@@ -84,6 +91,23 @@ namespace Game {
                 currentPages.Items.Add(window);
             }
 
+        }
+        protected void SwitchTabs(object sender, EventArgs e) {
+            //insert switch tab logic here
+        }
+        protected void AddTab(object sender, EventArgs e) {
+            TabPage defaultTab = new TabPage();
+            defaultTab.Name = browser.DocumentTitle;
+            tabs.TabPages.Add(defaultTab);
+            tabs.SelectTab(tabs.TabPages.Count - 1);
+
+            defaultTab.Controls.Add(browser);
+        }
+        protected void RemoveTab(object sender, EventArgs e) {
+            if (!(tabs.TabPages.Count == 1)){
+                tabs.TabPages.Remove(tabs.SelectedTab);
+                tabs.SelectTab(tabs.TabPages.Count - 1);
+            }
         }
         void BrowserLayoutSplit() {
             mainWindowSplitter.Name = "Main Window";
@@ -131,7 +155,9 @@ namespace Game {
             urlGoTo.Click += delegate (Object sender, EventArgs e)//setup button click function
             {
                 textboxURL = urlText.Text; //retrieve textbox text
-                browser.Navigate(new Uri(textboxURL));//Load website from url provided
+                if (!string.IsNullOrEmpty(textboxURL)) {
+                    browser.Navigate(new Uri(textboxURL));//Load website from url provided
+                }
             };
             goDownloadSplit.Panel1.Controls.Add(urlGoTo);
 

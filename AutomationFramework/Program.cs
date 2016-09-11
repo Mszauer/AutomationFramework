@@ -38,14 +38,20 @@ namespace Game {
         void OnLoad(object sender, EventArgs a) {
             browser = new WebBrowser();
             browser.Dock = DockStyle.Fill;
-            //browser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(DownloadHTML);
-            browser.Navigate("google.com");
+            browser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(OnWebpageLoad);
+
+            string targetUrl = "google.com";
+
+            if (System.IO.File.Exists("C:/default.txt")) {
+                targetUrl = System.IO.File.ReadAllText("C:/default.txt");
+            }
+            browser.Navigate(targetUrl);
 
             mainWindowSplitter = new SplitContainer();
             mainWindowSplitter.IsSplitterFixed = true;
             mainWindowSplitter.Dock = DockStyle.Fill;
 
-            BrowserLayoutSplit();
+            BrowserLayoutSplit(targetUrl);
 
             this.Controls.Add(mainWindowSplitter);
 
@@ -68,6 +74,8 @@ namespace Game {
 
             AddTab(this, new EventArgs());
             tabs.SelectedTab.Controls.Add(browser);
+            tabs.SelectedTab.Text = "Browser";
+
 
             #region DebugColors
 #if debugColors
@@ -83,18 +91,28 @@ namespace Game {
         void CreateListBox(SplitContainer rootSplitter) {
             SplitContainer splitListBox = ListboxSeperate();
 
-
             rootSplitter.Panel1.Controls.Add(splitListBox);
             #region Listbox
-            ListBox list = new ListBox();
-            list.Dock = DockStyle.Fill;
-            list.SelectionMode = SelectionMode.One; splitListBox.Panel1.Controls.Add(list);
+            currentPages = new ListBox();
+            currentPages.Dock = DockStyle.Fill;
+            currentPages.SelectionMode = SelectionMode.One;
+            splitListBox.Panel1.Controls.Add(currentPages);
+            
             #endregion
             #region Sourcecode View Button
             Button sourceCodeViewButton = new Button();
             sourceCodeViewButton.Text = "View Source Code";
             sourceCodeViewButton.Dock = DockStyle.Fill;
             sourceCodeViewButton.BackColor = Color.LightGreen;
+            sourceCodeViewButton.Click += (object sender, EventArgs e) => {
+                if (currentPages.SelectedIndex >= 0) {
+                    AddTab(sender, e);
+                    List<HtmlWindow> currentFrames = RefreshFrames();
+                    tabs.SelectedTab.Text = currentFrames[currentPages.SelectedIndex].Url.ToString();
+                    AddTextfield(tabs.SelectedTab,currentFrames);
+                }
+            };
+
             splitListBox.Panel2.Controls.Add(sourceCodeViewButton);
             #endregion
             #region SplitterDistanceDebug
@@ -106,23 +124,40 @@ namespace Game {
             #endregion
         }
         protected void RefreshListBox() {
-            /*foreach(HtmlWindow window in RefreshFrames()) {
-                currentPages.Items.Add(window);
-            }*/
-            foreach(String test in RefreshFrames()) {
-                currentPages.Items.Add(test);
-                //currentPages.Controls.Add(test);
+            currentPages.Items.Clear();
+            List<HtmlWindow> frames = RefreshFrames();
+            foreach(HtmlWindow window in frames) {
+                try {
+                    currentPages.Items.Add(window.Document.Url);
+                }
+                catch (System.Exception e){
+                    
+                }
             }
         }
         protected void SwitchTabs(object sender, EventArgs e) {
             //switches depending on selected index of currentPages
-            //tabs.SelectedTab = currentPages.SelectedIndex ; //change to match with index
+            tabs.SelectedIndex = currentPages.SelectedIndex;
         }
         protected void AddTab(object sender, EventArgs e) {
             TabPage defaultTab = new TabPage();
-            defaultTab.Name = browser.DocumentTitle;
             tabs.TabPages.Add(defaultTab);
             tabs.SelectTab(tabs.TabPages.Count - 1);
+        }
+        protected void AddTextfield(TabPage tab,List<HtmlWindow> currentFrames) {
+            TextBox content = new TextBox();
+            content.Multiline = true;
+            content.Dock = DockStyle.Fill;
+            content.WordWrap = true;
+            content.ScrollBars = ScrollBars.Vertical;
+            content.AcceptsReturn = true;
+            content.AcceptsTab = true;
+
+            string webData = currentFrames[currentPages.SelectedIndex].Document.Body.OuterHtml;
+            webData = webData.Replace("\n", "\r\n");
+
+            content.Text = webData;
+            tab.Controls.Add(content);
         }
         protected void RemoveTab(object sender, EventArgs e) {
             if (!(tabs.TabPages.Count == 1)){
@@ -130,7 +165,7 @@ namespace Game {
                 tabs.SelectTab(tabs.TabPages.Count - 1);
             }
         }
-        void BrowserLayoutSplit() {
+        void BrowserLayoutSplit(string currentPageURL) {
             mainWindowSplitter.Name = "Main Window";
 
             mainWindowSplitter.IsSplitterFixed = true;
@@ -146,16 +181,16 @@ namespace Game {
             urlSplitter.Dock = DockStyle.Fill;
             urlSplitter.IsSplitterFixed = true;
 
-            CreateTextbox(urlSplitter);
+            CreateTextbox(urlSplitter,currentPageURL);
         }
-        void CreateTextbox(SplitContainer rootSplitter) {
-            string textboxURL;
+        void CreateTextbox(SplitContainer rootSplitter,string currentPageURL) {
             rootSplitter.SplitterDistance = (int)(3.5f * (rootSplitter.Size.Width / 4));
 
 #region URLFIELD
             TextBox urlText = new TextBox();
             urlText.Dock = DockStyle.Fill;
             urlText.Multiline = false;
+            urlText.Text = currentPageURL;
             rootSplitter.Panel1.Controls.Add(urlText);
 #endregion
 
@@ -175,7 +210,7 @@ namespace Game {
             urlGoTo.Text = "Go!";
             urlGoTo.Click += delegate (Object sender, EventArgs e)//setup button click function
             {
-                textboxURL = urlText.Text; //retrieve textbox text
+                string textboxURL = urlText.Text; //retrieve textbox text
                 if (!string.IsNullOrEmpty(textboxURL)) {
                     browser.Navigate(new Uri(textboxURL));//Load website from url provided
                 }
@@ -194,7 +229,7 @@ namespace Game {
 #endregion
         }
         void OnWebpageLoad(object sender, WebBrowserDocumentCompletedEventArgs e) {
-            browser.Document.GetElementById("lst-ib").SetAttribute("value", "Superman");//insert text for search boxes
+            /*browser.Document.GetElementById("lst-ib").SetAttribute("value", "Superman");//insert text for search boxes
 
             //browser.Document.GetElementById("go").InvokeMember("click"); // tried to load a new web page and it did not have a search button. NRE
             foreach (HtmlElement el in browser.Document.GetElementsByTagName("input")) {
@@ -204,7 +239,8 @@ namespace Game {
 
                 }
 
-            }
+            }*/
+            RefreshListBox();
             
         }
         void GetHTMLBody() {
@@ -244,15 +280,12 @@ namespace Game {
 #endregion
             return listboxSplitter;
         }
-        /*List<HtmlWindow> RefreshFrames() {
+        List<HtmlWindow> RefreshFrames() {
             List<HtmlWindow> currentWindows = GetIFrames(browser.Document.Window);
 
             return currentWindows;
-        } //this gets stuck on infinte loop*/
-        String[] RefreshFrames() {
-            string[] tester = new string[3] { "one", "two", "3" };
-            return tester;
         }
+
         protected List<HtmlWindow> GetIFrames(HtmlWindow rootWindow) {
             List<HtmlWindow> result = new List<HtmlWindow>();
 

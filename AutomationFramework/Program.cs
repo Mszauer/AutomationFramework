@@ -183,6 +183,23 @@ namespace Game {
 
             CreateTextbox(urlSplitter,currentPageURL);
         }
+        void QuestionExtractor() {
+            HtmlDocument doc = browser.Document;
+            HtmlElementCollection divs = doc.GetElementsByTagName("div");
+
+            foreach (HtmlElement div in divs) {
+                try {
+                    string questionClass = "assessment_question_text";
+                    if (div.GetAttribute(questionClass).ToString() == questionClass) {
+                        MessageBox.Show("Found class tag");
+
+                    }
+                }
+                catch {
+
+                }
+            }
+        }
         void CreateTextbox(SplitContainer rootSplitter,string currentPageURL) {
             rootSplitter.SplitterDistance = (int)(3.5f * (rootSplitter.Size.Width / 4));
 

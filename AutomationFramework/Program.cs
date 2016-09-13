@@ -14,7 +14,7 @@ namespace Game {
         public WebBrowser browser;
         public ListBox currentPages;
         public TabControl tabs;
-        
+        public Dictionary<string, List<string>> currentQuestion;
 
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.ComponentModel.IContainer components = null;
@@ -36,6 +36,8 @@ namespace Game {
         }
 
         void OnLoad(object sender, EventArgs a) {
+            currentQuestion = new Dictionary<string, List<string>>();
+
             browser = new WebBrowser();
             browser.Dock = DockStyle.Fill;
             browser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(OnWebpageLoad);
@@ -183,22 +185,61 @@ namespace Game {
 
             CreateTextbox(urlSplitter,currentPageURL);
         }
-        void QuestionExtractor() {
-            HtmlDocument doc = browser.Document;
-            HtmlElementCollection divs = doc.GetElementsByTagName("div");
+        string QuestionExtractor() {
+            string question = "";
+            List<HtmlWindow> doc = RefreshFrames();
+            HtmlElement questionElement;
 
-            foreach (HtmlElement div in divs) {
+            HtmlElementCollection htmlElements = doc[2].Document.GetElementsByTagName("td");
+            foreach (HtmlElement element in htmlElements) {
                 try {
                     string questionClass = "assessment_question_text";
-                    if (div.GetAttribute(questionClass).ToString() == questionClass) {
-                        MessageBox.Show("Found class tag");
+                    string className = element.GetAttribute("className");
+                    if (className == questionClass) {
+                        questionElement = element;
 
+                        DialogResult userClickedOK = MessageBox.Show("The questions is: \n" + element.InnerText);
+                        if (userClickedOK == DialogResult.OK) {
+                            AnswerExtractor();
+                        }
+
+                        question = element.InnerText;
+                        return question;
                     }
                 }
-                catch {
+                catch (System.Exception e) {
 
                 }
             }
+            return question;
+        }
+        List<string> AnswerExtractor() {
+            List<string> answers = new List<string>();
+            List<HtmlWindow> doc = RefreshFrames();
+
+            HtmlElementCollection htmlElements = doc[2].Document.GetElementsByTagName("td");
+            foreach (HtmlElement element in htmlElements) {
+                try {
+                    string questionClass = "assessment_choices";
+                    string className = element.GetAttribute("className");
+                    if (className == questionClass) {
+                        answers.Add(element.InnerText);
+                        return answers;
+                    }
+                }
+                catch (System.Exception e) {
+
+                }
+            }
+            #region Popup
+            string result = "The answers are:";
+            foreach(string answer in answers) {
+                result.Insert(result.Length-1,"\n" + answer);
+            }
+
+            MessageBox.Show(result);
+            #endregion
+            return answers;
         }
         void CreateTextbox(SplitContainer rootSplitter,string currentPageURL) {
             rootSplitter.SplitterDistance = (int)(3.5f * (rootSplitter.Size.Width / 4));
@@ -238,9 +279,9 @@ namespace Game {
             download.Dock = DockStyle.Fill;
             download.BackColor = Color.CadetBlue;
             download.Text = "Get Body";
-            download.Click += delegate (Object sender, EventArgs e)//setup button click function
+            download.Click +=  (Object sender, EventArgs e) =>
             {
-                GetHTMLBody();
+                QuestionExtractor();
             };
             goDownloadSplit.Panel2.Controls.Add(download);
 #endregion

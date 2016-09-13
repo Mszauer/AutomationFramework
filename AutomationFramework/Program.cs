@@ -224,12 +224,13 @@ namespace Game {
                     string className = element.GetAttribute("className");
                     if (className == questionClass) {
                         answers.Add(element.InnerText);
-                        return answers;
                     }
                 }
                 catch (System.Exception e) {
 
                 }
+                MessageBox.Show("The first question is: \n" + answers[0]);
+                return answers;
             }
             #region Popup
             string result = "The answers are:";

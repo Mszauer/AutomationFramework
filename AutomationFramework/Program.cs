@@ -220,8 +220,8 @@ namespace Game {
             HtmlElementCollection htmlElements = doc[2].Document.GetElementsByTagName("td");
             foreach (HtmlElement element in htmlElements) {
                 try {
-                    string questionClass = "assessment_choices";
-                    string className = element.GetAttribute("className");
+                    string questionClass = "assessment_multiple_choice";
+                    string className = element.GetAttribute("className"); //this is always null for some reason
                     if (className == questionClass) {
                         answers.Add(element.InnerText);
                     }
@@ -229,8 +229,6 @@ namespace Game {
                 catch (System.Exception e) {
 
                 }
-                MessageBox.Show("The first question is: \n" + answers[0]);
-                return answers;
             }
             #region Popup
             string result = "The answers are:";

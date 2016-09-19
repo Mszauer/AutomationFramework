@@ -204,6 +204,9 @@ namespace Game {
                         }
 
                         question = element.InnerText;
+
+                        System.Windows.Forms.Clipboard.SetText(element.InnerText);
+
                         return question;
                     }
                 }
@@ -233,7 +236,7 @@ namespace Game {
             #region Popup
             string result = "The answers are:";
             foreach(string answer in answers) {
-                result.Insert(result.Length-1,"\n" + answer);
+                result = result.Insert(result.Length-1,"\n" + answer);
             }
 
             MessageBox.Show(result);
